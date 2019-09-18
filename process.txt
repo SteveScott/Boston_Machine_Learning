@@ -1,0 +1,14 @@
+Data import
+
+-Import using scikit learn.
+
+
+Exploratory data analysis
+-find Pearson's r correlation coefficient for all the pairs of variables.
+
+Modeling
+-Split into test and training datasets.
+-create baseline score: -.03
+-create kitchen sink linear regression
+-get coefficients for linear regression.
+-create kitchen sink random forest.
