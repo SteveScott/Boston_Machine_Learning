@@ -22,3 +22,10 @@ sns.heatmap(corr,
 sns.pairplot(df)
 sns.jointplot(df["NOX"], df["INDUS"])
 
+print(df.describe())
+
+with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+    columns = list(df)
+    for i in columns:
+        print(df[i].describe())
+
