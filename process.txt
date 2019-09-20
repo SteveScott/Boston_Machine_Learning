@@ -12,3 +12,10 @@ Modeling
 -create kitchen sink linear regression
 -get coefficients for linear regression.
 -create kitchen sink random forest.
+-scale parameters between 0 and 1 and train neural network
+-create linear model
+-random forest was best
+-try feature reduction
+-marginal improvement.
+-create a grid search for hyperparameters for random forest with k-folds validation
+-marginal improvement.
