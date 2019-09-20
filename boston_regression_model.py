@@ -1,5 +1,6 @@
 from sklearn import datasets
 import sklearn
+import scipy
 from sklearn import model_selection, dummy, ensemble, linear_model, neural_network
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from sklearn.preprocessing import MinMaxScaler
@@ -8,6 +9,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pprint
 import copy
+import seaborn as sns
+import math
+from scipy.stats import normaltest
 ### load dataset
 boston = datasets.load_boston()
 df = pd.DataFrame(boston.data, columns=boston.feature_names)
@@ -152,7 +156,7 @@ rf = sklearn.ensemble.RandomForestRegressor()
 rf_random = RandomizedSearchCV(estimator =
                                rf, param_distributions=random_grid, n_iter=100, cv=3, random_state=0, n_jobs = -1)
 #this takes a while so I commented it out
-rf_random_fit = copy.deepcopy(rf_random(X_train, y_train))
+#rf_random_fit = copy.deepcopy(rf_random.fit(X_train, y_train))
 pp.pprint(rf_random_fit.best_params_)
 
 def evaluate(model, test_features, test_labels):
@@ -166,8 +170,33 @@ def evaluate(model, test_features, test_labels):
 
 print('base random forest')
 print(evaluate(kitchen_sink_rf_model, X_test, y_test))
+#Model Performance
+#Average Error: 2.7592 degrees.
+#Accuracy = 87.56%.
+None
 print('hypertuned random forest')
-print(evaluate(rf_random_fit(X_test, y_test)))
+print(evaluate(rf_random_fit, X_test, y_test))
+#Model Performance
+#Average Error: 2.6597 degrees.
+#Accuracy = 87.53%.
 
+#Tuning hyperparameters resulted in .03% improvement. Marginal.
+#Test residuals for normalcy
+predictions = rf_random_fit.predict(X_test)
+residuals = []
+for i in range(0, len(y_test)):
+    residuals.append((y_test[i] - predictions[i]))
+    
+sns.residplot(predictions, y_test, data='auto')
+#D'Agostino's K^2 Test
+stat, p = scipy.stats.normaltest(residuals)
 
-
+print(stat)
+print(p)
+#102.23955737566966, 6.294513941099488e-23
+#not at all normally distributed. Hmm...
+plt.hist(residuals, bins=20)
+plt.show()
+#There are some outliers that have high discrepancy. two values with high error.
+compare = lambda x: x > 20
+outlier_indicies = map(compare, residuals)
