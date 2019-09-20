@@ -1,11 +1,12 @@
 from sklearn import datasets
 import sklearn
 from sklearn import model_selection, dummy, ensemble, linear_model, neural_network
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
+from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
+import pprint
 import copy
 ### load dataset
 boston = datasets.load_boston()
@@ -20,6 +21,7 @@ X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split (X,
                                                      random_state=0)
 y_train = y_train.values.ravel()
 y_test = y_test.values.ravel()
+
 #make a dummy model
 model_dummy = sklearn.dummy.DummyRegressor(strategy = 'median')
 model_dummy.fit(X_train, y_train)
@@ -127,4 +129,45 @@ y_pred = kitchen_sink_rf_model.predict(X_test)
 plt.scatter(y_test, y_pred)
 plt.grid()
 plt.show()
+pp = pprint.PrettyPrinter(indent=4)
+#pp.pprint(kitchen_sink_rf_model.get_params())
+
+#hyper parameters
+n_estimators = [int(x) for x in np.linspace(start=200, stop=2000, num=10)]
+max_features = ['auto', 'sqrt']
+max_depth = [int(x) for x in np.linspace(10, 200, num = 11)]
+max_depth.append(None)
+min_samples_split = [2, 5, 10]
+min_samples_leaf=[1, 2, 4]
+bootstrap = [True, False]
+random_grid = {'n_estimators': n_estimators,
+               'max_features': max_features,
+               'max_depth': max_depth,
+               'min_samples_split': min_samples_split,
+               'min_samples_leaf': min_samples_leaf,
+               'bootstrap': bootstrap}
+
+#search the grid for best sample. 3 fold cross validation, 100 different combinations, all cores
+rf = sklearn.ensemble.RandomForestRegressor()
+rf_random = RandomizedSearchCV(estimator =
+                               rf, param_distributions=random_grid, n_iter=100, cv=3, random_state=0, n_jobs = -1)
+#this takes a while so I commented it out
+rf_random_fit = copy.deepcopy(rf_random(X_train, y_train))
+pp.pprint(rf_random_fit.best_params_)
+
+def evaluate(model, test_features, test_labels):
+    predictions = model.predict(test_features)
+    errors = abs(predictions - test_labels)
+    mape = 100 * np.mean(errors / test_labels)
+    accuracy = 100 - mape
+    print('Model Performance')
+    print('Average Error: {:0.4f} degrees.'.format(np.mean(errors)))
+    print('Accuracy = {:0.2f}%.'.format(accuracy))
+
+print('base random forest')
+print(evaluate(kitchen_sink_rf_model, X_test, y_test))
+print('hypertuned random forest')
+print(evaluate(rf_random_fit(X_test, y_test)))
+
+
 
